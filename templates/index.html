@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename= 'styles.css') }}"/>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="{{url_for('static', filename='scripts.js')}}"></script>
+        <title>Security Camera</title>
+    </head>
+    <body>
+        <br><br><br><br><h1>Security Camera</h1><br><br>
+        <div class="input_box">
+            <form>
+                <input type="text" id="username" name="username" placeholder="username"><br>
+                <input type="text" id="password" name="password" placeholder="password"><br><br>
+                <input type="button" value="Log In" onclick="login_user()" />
+            </form><br>
+            <p id="log_text"></p>
+        </div>
+    </body>
+</html>

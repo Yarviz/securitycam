@@ -1,0 +1,32 @@
+@charset "UTF-8";
+
+h1 {
+    color: white;
+    text-align: center;
+}
+
+body {
+    background-color: gray;
+}
+
+input {
+    text-align: center;
+}
+
+.input_box {
+    text-align: center;
+}
+
+.text_right {
+    text-align: right;
+}
+
+br {
+    display: block;
+    content: "";
+    margin-top: 5px;
+}
+
+p {
+    color: darkred;
+}

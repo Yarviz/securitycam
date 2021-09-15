@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename= 'styles.css') }}"/>
+        <title>Security Camera</title>
+    </head>
+    <body>
+        <div class="text_right">
+            {{ user }}&nbsp;{{ email }}&nbsp;
+            <input type="button" value="Log Out" />
+        </div>
+        <h1>Security Alarms</h1><br><br>
+    </body>
+</html>
