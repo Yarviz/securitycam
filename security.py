@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 from flask.logging import default_handler
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from helpers import DataBase, User, UserHelper, get_log_handler
@@ -24,6 +24,18 @@ users = UserHelper(db)
 def load_user(user_id):
     return users.get_user(user_id)
 
+def error(msg):
+    return jsonify({
+        'result' : 401,
+        'message': msg
+    })
+
+def ok(data):
+    return jsonify({
+        'result' : 200,
+        'data': data
+    })
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -32,15 +44,26 @@ def index():
 @login_required
 def get_photos():
     data = request.json
-    get_all = False if data.get('all') == False else True
-    log.info('get photos')
-    return jsonify(db.get_photo_infos(get_all))
+    req_type = data.get('request')
+    if req_type == 'list':
+        get_all = False if data.get('all') == False else True
+        log.info('get photos')
+        return jsonify(db.get_photo_infos(get_all))
+    elif req_type == 'photo':
+        id = data.get('id')
+        img = db.get_photo_img(id)
+        if img:
+            img_path = 'photos/' + img
+            return ok(img_path)
+        return error('image not found')
+
+    return error('invalid request type')
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return render_template('index.html')
+    return redirect("/")
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -49,24 +72,15 @@ def login():
     password = data.get('password')
 
     if username == None or password == None:
-        return jsonify({
-            'result' : 401,
-            'message': 'enter username and password'
-        })
+        return error('enter username and password')
 
     user = users.validate_user(username, password)
     if user:
         log.info(user.to_json())
         login_user(user)
-        return jsonify({
-            'result' : 200,
-            'data'   : user.to_json()
-        })
+        return ok(user.to_json())
     else:
-        return jsonify({
-            'result' : 401,
-            'message': 'invalid username or password'
-        })
+        return error('invalid username or password')
 
 @app.route('/browse_data')
 @login_required

@@ -2,7 +2,7 @@ import sqlite3
 import logging
 import time
 
-DB_FILE = "security.db"
+DB_FILE = "database/security.db"
 log = logging.getLogger('database')
 log.setLevel(logging.DEBUG)
 
@@ -63,9 +63,13 @@ class DataBase:
 
     def get_photo_infos(self, all=True):
         where = '' if all == True or self.last_ts == None else f'WHERE ts > {self.tast_ts} '
-        data = self.read(table='photos', where=f'{where}ORDER BY ts DESC')
+        data = self.read(table='photos', rows=['id', 'ts'], where=f'{where}ORDER BY ts DESC')
         self.last_ts = time.time()
         return data
+
+    def get_photo_img(self, id):
+        data = self.read(table='photos', rows=['file'], where=f'WHERE id = {id}')
+        return data[0][0] if data else None
 
 class User:
     def __init__(self, id, name, email=None):

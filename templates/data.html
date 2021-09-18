@@ -7,7 +7,7 @@
         <script src="{{url_for('static', filename='scripts.js')}}"></script>
         <title>Security Camera</title>
     </head>
-    <body onload="refresh_photos()">
+    <body onload="init_listeners()">
         <div class="text_right">
             Username: {{ user }}<br>Email: {{ email }}<br>
             <form action="/logout">
@@ -17,6 +17,14 @@
         <h1>Security Alarms</h1><br><br>
         <div class="table">
             <ul id="photolist"></ul>
+        </div>
+        <div id="photo_info" style="display: none;">
+            <div style="text-align: center;">
+                <br><b id="timestamp"></b><br>
+            </div>
+            <div class="photo">
+                <img id="photo_img"/>
+            </div>
         </div>
     </body>
 </html>
