@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+import time
 
 DB_FILE = "security.db"
 log = logging.getLogger('database')
@@ -30,6 +31,7 @@ class DataBase:
     def __init__(self, logger):
         self.conn = None
         self.log = logger
+        self.last_ts = None
 
     def open_db(self):
         self.conn = sqlite3.connect(DB_FILE)
@@ -59,6 +61,11 @@ class DataBase:
 
         return ret
 
+    def get_photo_infos(self, all=True):
+        where = '' if all == True or self.last_ts == None else f'WHERE ts > {self.tast_ts} '
+        data = self.read(table='photos', where=f'{where}ORDER BY ts DESC')
+        self.last_ts = time.time()
+        return data
 
 class User:
     def __init__(self, id, name, email=None):

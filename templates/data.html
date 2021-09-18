@@ -3,13 +3,20 @@
     <head>
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename= 'styles.css') }}"/>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="{{url_for('static', filename='scripts.js')}}"></script>
         <title>Security Camera</title>
     </head>
-    <body>
+    <body onload="refresh_photos()">
         <div class="text_right">
-            {{ user }}&nbsp;{{ email }}&nbsp;
-            <input type="button" value="Log Out" />
+            Username: {{ user }}<br>Email: {{ email }}<br>
+            <form action="/logout">
+                <input type="submit" value="Log Out"/>
+            </form>
         </div>
         <h1>Security Alarms</h1><br><br>
+        <div class="table">
+            <ul id="photolist"></ul>
+        </div>
     </body>
 </html>

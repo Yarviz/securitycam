@@ -18,7 +18,7 @@ input {
 }
 
 .text_right {
-    text-align: right;
+    text-align: left;
 }
 
 br {
@@ -29,4 +29,31 @@ br {
 
 p {
     color: darkred;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+ul li {
+    color: rgb(238, 196, 58);
+}
+
+ul li:hover {
+    color: rgb(231, 62, 20);
+    background-color: rgb(194, 194, 194);
+    cursor: default;
+}
+
+.table {
+    margin: auto;
+    width: 25%;
+    height: 256px;
+    overflow-y: scroll;
+    overflow: auto;
+    text-align: left;
+    border-style: double;
+    background-color: rgba(100, 100, 100);
 }

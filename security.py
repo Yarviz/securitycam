@@ -28,9 +28,22 @@ def load_user(user_id):
 def index():
     return render_template('index.html')
 
+@app.route('/get_photos', methods=['POST'])
+@login_required
+def get_photos():
+    data = request.json
+    get_all = False if data.get('all') == False else True
+    log.info('get photos')
+    return jsonify(db.get_photo_infos(get_all))
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return render_template('index.html')
+
 @app.route('/login', methods=['POST'])
 def login():
-
     data = request.json
     username = data.get('username')
     password = data.get('password')
@@ -42,8 +55,8 @@ def login():
         })
 
     user = users.validate_user(username, password)
-    log.info(user.to_json())
     if user:
+        log.info(user.to_json())
         login_user(user)
         return jsonify({
             'result' : 200,
