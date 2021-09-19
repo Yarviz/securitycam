@@ -1,6 +1,7 @@
 class Photos {
     constructor(photos) {
         this.photos = photos;
+        this.entry = -1;
     }
 
     get_id(pos) {
@@ -11,6 +12,18 @@ class Photos {
     get_ts(pos) {
         if (this.photos.length <= pos) return null;
         return this.photos[pos][1];
+    }
+
+    set_entry(entry) {
+        this.entry = entry;
+    }
+
+    get_entry() {
+        return this.entry;
+    }
+
+    delete_entry(entry) {
+        this.photos.splice(entry, 1);
     }
 }
 
@@ -53,10 +66,11 @@ function init_listeners() {
     document.getElementById('photolist').addEventListener("click", function(e) {
         var parent = e.target.parentElement;
         var index = Array.prototype.indexOf.call(parent.children, e.target);
+        photos.set_entry(index);
         console.log(index);
         $('#timestamp').html(photos.get_ts(index));
         $('#photo_info').show();
-        post_request('/get_photos', { "request": "photo", "id": photos.get_id(index) }, function(data) {
+        post_request('/photos', { "request": "get", "id": photos.get_id(index) }, function(data) {
             if (data['result'] == 200) {
                 $('#photo_img').attr('src', data['data']);
             }
@@ -65,8 +79,8 @@ function init_listeners() {
 }
 
 function refresh_photos() {
-    console.log("get photos")
-    post_request('/get_photos', { "request": "list", "all": true }, function(data) {
+    console.log("get photos");
+    post_request('/photos', { "request": "list", "all": true }, function(data) {
         photos = new Photos(data);
 
         var list = document.getElementById("photolist");
@@ -76,4 +90,18 @@ function refresh_photos() {
             list.appendChild(item);
         }
     });
+}
+
+function remove_photo() {
+    console.log("remove photo");
+    var entry = photos.get_entry();
+    if (entry > -1) {
+        post_request('/photos', { "request": "delete", "id": photos.get_id(entry) }, function(data) {
+            var list = document.getElementById("photolist");
+            photos.delete_entry(entry);
+            list.removeChild(list.children[entry]);
+            $('#photo_img').attr('src', '');
+            $('#photo_info').hide();
+        });
+    }
 }

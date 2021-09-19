@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DATABASE='security.db'
+PHOTO_DIR='../static/photos'
 force=false
 
 check_next () {
@@ -57,4 +58,9 @@ sqlite3 $DATABASE < $init_file
 if [ -v init_dummy ];then
     echo "Importing dummy files"
     sqlite3 $DATABASE < $init_dummy
+fi
+
+if [ ! -d $PHOTO_DIR ]; then
+    echo "Creating photo directory"
+    mkdir $PHOTO_DIR
 fi

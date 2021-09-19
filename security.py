@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask.logging import default_handler
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from helpers import DataBase, User, UserHelper, get_log_handler
@@ -40,7 +40,7 @@ def ok(data):
 def index():
     return render_template('index.html')
 
-@app.route('/get_photos', methods=['POST'])
+@app.route('/photos', methods=['POST'])
 @login_required
 def get_photos():
     data = request.json
@@ -49,13 +49,19 @@ def get_photos():
         get_all = False if data.get('all') == False else True
         log.info('get photos')
         return jsonify(db.get_photo_infos(get_all))
-    elif req_type == 'photo':
+    elif req_type == 'get':
         id = data.get('id')
         img = db.get_photo_img(id)
         if img:
             img_path = 'photos/' + img
-            return ok(img_path)
+            return ok(url_for('static', filename=img_path))
         return error('image not found')
+    elif req_type == 'delete':
+        id = data.get('id')
+        deleted = db.delete_photo(id)
+        if deleted > 0:
+            return ok('image entry deleted')
+        return error('image entry not found')
 
     return error('invalid request type')
 

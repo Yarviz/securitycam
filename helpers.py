@@ -61,6 +61,19 @@ class DataBase:
 
         return ret
 
+    def delete(self, table, where=''):
+        cur = self.open_db()
+        if cur == None:
+            return None
+        self.log.info(f'DELETE FROM {table} {where};')
+        cur.execute(f'DELETE FROM {table} {where};')
+        self.conn.commit()
+        ret = cur.rowcount
+        self.log.info(ret)
+        self.close_db()
+
+        return ret
+
     def get_photo_infos(self, all=True):
         where = '' if all == True or self.last_ts == None else f'WHERE ts > {self.tast_ts} '
         data = self.read(table='photos', rows=['id', 'ts'], where=f'{where}ORDER BY ts DESC')
@@ -70,6 +83,10 @@ class DataBase:
     def get_photo_img(self, id):
         data = self.read(table='photos', rows=['file'], where=f'WHERE id = {id}')
         return data[0][0] if data else None
+
+    def delete_photo(self, id):
+        entries = self.delete(table='photos', where=f'WHERE id = {id}')
+        return entries if entries else 0
 
 class User:
     def __init__(self, id, name, email=None):
