@@ -1,6 +1,7 @@
 import sqlite3
 import logging
 import time
+from threading import Lock
 
 DB_FILE = "database/security.db"
 log = logging.getLogger('database')
@@ -32,6 +33,17 @@ class DataBase:
         self.conn = None
         self.log = logger
         self.last_ts = None
+        self.mutex = None
+
+    def set_mutex(self):
+        self.mutex = Lock()
+
+    def _lock(self, on_onff: bool):
+        if self.mutex:
+            if on_onff == True:
+                self.mutex.acquire()
+            else:
+                self.mutex.release()
 
     def open_db(self):
         self.conn = sqlite3.connect(DB_FILE)
@@ -65,12 +77,16 @@ class DataBase:
         cur = self.open_db()
         if cur == None:
             return None
-        self.log.info(f'DELETE FROM {table} {where};')
-        cur.execute(f'DELETE FROM {table} {where};')
-        self.conn.commit()
-        ret = cur.rowcount
-        self.log.info(ret)
-        self.close_db()
+        try:
+            self._lock(True)
+            self.log.info(f'DELETE FROM {table} {where};')
+            cur.execute(f'DELETE FROM {table} {where};')
+            self.conn.commit()
+            ret = cur.rowcount
+            self.log.info(ret)
+            self.close_db()
+        finally:
+            self._lock(False)
 
         return ret
 

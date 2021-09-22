@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask.logging import default_handler
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
-from helpers import DataBase, User, UserHelper, get_log_handler
+from database import DataBase, User, UserHelper, get_log_handler
 import logging
 import argparse
 import json
+import signal
+from camera import Camera
 
 app = Flask("security cam")
 #app.config['LOGIN_DISABLED'] = True
@@ -19,10 +21,7 @@ log.addHandler(loghandler)
 
 db = DataBase(log)
 users = UserHelper(db)
-
-@login_manager.user_loader
-def load_user(user_id):
-    return users.get_user(user_id)
+camera = None
 
 def error(msg):
     return jsonify({
@@ -35,6 +34,16 @@ def ok(data):
         'result' : 200,
         'data': data
     })
+
+def sig_handler(sig, frame):
+    log.info('got SIGINT, exiting')
+    if camera:
+        camera.stop_reader()
+    exit(0)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return users.get_user(user_id)
 
 @app.route('/')
 def index():
@@ -98,9 +107,8 @@ def broqse_data():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--create_db', action='store_true')
-    parser.add_argument('--dummy_val', action='store_true')
-    parser.add_argument('--cert', action='store_true')
+    parser.add_argument('--cert', action='store_true', help='set this if using HTTPS')
+    parser.add_argument('--port', type=str, help='enter arduino serial port')
 
     args = parser.parse_args()
 
@@ -110,15 +118,21 @@ if __name__ == '__main__':
         log.error('Failed to open database')
         exit(1)
 
-    if args.create_db:
-        files = []
-        if args.dummy_val:
-            files.extend(['file1', 'file2'])
-        db.create_db(files)
+    if args.port:
+        camera = Camera(args.port, log)
+        if camera.start_reader() == False:
+            log.warning("Can't open serial port")
+        else:
+            log.info("Camera state reader started")
+            db.set_mutex()
+    else:
+        log.warning("Arduino serial port not defined, can't take security pictures.")
 
     cert = None
     if args.cert:
         cert = 'adhoc'
+
+    signal.signal(signal.SIGINT, sig_handler)
 
     log.info(db.read(table='users'))
     app.run(debug=True, ssl_context=cert)

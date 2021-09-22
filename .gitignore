@@ -1,3 +1,4 @@
-security.db
+database/security.db
 static/photos/
 __pycache__
+serialreader.py

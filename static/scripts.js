@@ -41,6 +41,13 @@ function post_request(path, json_data, callback) {
     });
 }
 
+async function get_hash(data) {
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(data);
+    const hash = await window.crypto.subtle.digest('SHA-256', encoded);
+    return hash;
+}
+
 function login_user() {
     console.log("login user")
     var userdata = {
