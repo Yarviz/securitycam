@@ -4,8 +4,6 @@ import time
 from threading import Lock
 
 DB_FILE = "database/security.db"
-log = logging.getLogger('database')
-log.setLevel(logging.DEBUG)
 
 def get_log_handler(level):
     handler = logging.StreamHandler()
