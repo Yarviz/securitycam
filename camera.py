@@ -2,9 +2,12 @@ from serial import Serial
 from threading import Thread
 import subprocess
 import time
+import os
 
 VALUE_TRESHOLD = 5.0
 TIME_TRESHOLD = 5.0
+PHOTO_DIR = 'database/photos'
+PHOTO_FILE = 'photo'
 class Camera(object):
     def __init__(self, port, logger):
         self.port = port
@@ -15,11 +18,26 @@ class Camera(object):
     def open_port(self, baudrate=9600, timeout=2):
         return Serial(self.port, baudrate=baudrate, timeout=timeout)
 
+    def find_img_index(self):
+        path = os.listdir(os.getcwd() + '/' + PHOTO_DIR)
+        photo_indexes = []
+        for file in path:
+            if file.startswith(PHOTO_FILE) and file.endswith(".jpg"):
+                try:
+                    photo_indexes.append(int(list(filter(str.isdigit, file))[0]))
+                except ValueError:
+                    pass
+        self.log.info(photo_indexes)
+        if not photo_indexes:
+            return 0
+        return max(photo_indexes) + 1
+
+
     def start_reader(self):
         self.reader = self.open_port()
         if self.reader.is_open == False:
             return False
-        self.read_thread = ReadThread(self.reader, self.log)
+        self.read_thread = ReadThread(self.reader, self.log, self.find_img_index())
         self.read_thread.start()
         return True
 
@@ -29,13 +47,14 @@ class Camera(object):
         self.reader.close()
 
 class ReadThread(Thread):
-    def __init__(self, reader, log):
+    def __init__(self, reader, log, index):
         Thread.__init__(self)
         self.reader = reader
         self.log = log
         self.running = False
         self.last_num = None
         self.pic_time = 0.0
+        self.img_index = index
 
     def run(self):
         self.reader.flush()
@@ -59,9 +78,11 @@ class ReadThread(Thread):
         self.last_num = num
 
     def take_picture(self):
-        proc_out = subprocess.getoutput(['fswebcam', 'pic_1.jpg'])
+        proc_out = subprocess.getoutput([f'fswebcam {PHOTO_DIR}/{PHOTO_FILE}_{self.img_index}.jpg'])
+        self.log.info(proc_out)
         if proc_out.find('Captured frame') > 0:
-            self.log.info('New frame captured')
+            self.log.info(f'New frame pic_{self.img_index}.jpg captured')
+            self.img_index += 1
         else:
             self.log.warn('Failed to capture frame')
 

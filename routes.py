@@ -2,6 +2,8 @@ from flask import render_template, request, jsonify, redirect, url_for
 from flask_login import login_required, login_user, logout_user, current_user
 from __main__ import app, login_manager, users, log, db
 
+from flask import send_from_directory
+
 def error(msg):
     return jsonify({
         'result' : 401,
@@ -17,6 +19,12 @@ def ok(data):
 @login_manager.user_loader
 def load_user(user_id):
     return users.get_user(user_id)
+
+@app.route('/uploads/<path:filename>')
+def download_file(filename):
+    log.info(app.config['UPLOAD_FOLDER'])
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename, as_attachment=True)
 
 @app.route('/')
 def index():
@@ -35,8 +43,7 @@ def get_photos():
         id = data.get('id')
         img = db.get_photo_img(id)
         if img:
-            img_path = 'photos/' + img
-            return ok(url_for('static', filename=img_path))
+            return ok(url_for('download_file', filename=img))
         return error('image not found')
     elif req_type == 'delete':
         id = data.get('id')

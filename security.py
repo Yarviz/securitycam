@@ -8,6 +8,7 @@ from camera import Camera
 
 app = Flask("security cam")
 #app.config['LOGIN_DISABLED'] = True
+app.config['UPLOAD_FOLDER'] = app.root_path + '/database/photos/'
 app.secret_key = 'security app'
 
 login_manager = LoginManager()
@@ -44,6 +45,7 @@ if __name__ == '__main__':
 
     if args.port:
         camera = Camera(args.port, log)
+        camera.find_img_index()
         if camera.start_reader() == False:
             log.warning("Can't open serial port")
         else:
