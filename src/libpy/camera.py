@@ -4,6 +4,8 @@ import subprocess
 import time
 import os
 
+from serial.serialutil import SerialException
+
 VALUE_TRESHOLD = 5.0
 TIME_TRESHOLD = 5.0
 PHOTO_DIR = 'database/photos'
@@ -34,17 +36,19 @@ class Camera(object):
 
 
     def start_reader(self, db):
-        self.reader = self.open_port()
-        if self.reader.is_open == False:
+        try:
+            self.reader = self.open_port()
+        except SerialException:
             return False
         self.read_thread = ReadThread(self.reader, self.log, db, self.find_img_index())
         self.read_thread.start()
         return True
 
     def stop_reader(self):
-        self.read_thread.stop()
-        self.read_thread.join()
-        self.reader.close()
+        if self.read_thread:
+            self.read_thread.stop()
+            self.read_thread.join()
+            self.reader.close()
 
 class ReadThread(Thread):
     def __init__(self, reader, log, db, index):

@@ -1,10 +1,10 @@
 from flask import Flask
 from flask_login import LoginManager
-from database import DataBase, UserHelper, get_log_handler
+from libpy.database import DataBase, UserHelper, get_log_handler
 import logging
 import argparse
 import signal
-from camera import Camera
+from libpy.camera import Camera
 
 app = Flask("security cam")
 #app.config['LOGIN_DISABLED'] = True
@@ -22,7 +22,7 @@ db = DataBase(log)
 users = UserHelper(db)
 camera = None
 
-import routes
+import libpy.routes
 
 def sig_handler(sig, frame):
     if camera:
