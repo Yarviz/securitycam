@@ -1,9 +1,11 @@
 import sqlite3
 import logging
-import time
+from datetime import datetime
+import os
 from threading import Lock
 
 DB_FILE = "database/security.db"
+PHOTO_DIR = 'database/photos'
 
 def get_log_handler(level):
     handler = logging.StreamHandler()
@@ -56,28 +58,32 @@ class DataBase:
             self.conn.close()
 
     def read(self, table, rows=[], where=''):
-        cur = self.open_db()
-        if cur == None:
-            return None
+        ret = None
+        rowstr = '*'
         if rows:
             rowstr = ','.join(rows)
-        else:
-            rowstr = '*'
-        self.log.info(f'SELECT {rowstr} FROM {table} {where};')
-        cur.execute(f'SELECT {rowstr} FROM {table} {where};')
-        ret = cur.fetchall()
-        self.log.info(ret)
-        self.close_db()
-
+        try:
+            self._lock(True)
+            cur = self.open_db()
+            if cur == None:
+                return None
+            self.log.info(f'SELECT {rowstr} FROM {table} {where};')
+            cur.execute(f'SELECT {rowstr} FROM {table} {where};')
+            ret = cur.fetchall()
+            self.log.info(ret)
+            self.close_db()
+        finally:
+            self._lock(False)
         return ret
 
     def delete(self, table, where=''):
-        cur = self.open_db()
-        if cur == None:
-            return None
+        ret = None
         try:
             self._lock(True)
-            self.log.info(f'DELETE FROM {table} {where};')
+            cur = self.open_db()
+            if cur == None:
+                return None
+            self.log.debug(f'DELETE FROM {table} {where};')
             cur.execute(f'DELETE FROM {table} {where};')
             self.conn.commit()
             ret = cur.rowcount
@@ -85,13 +91,37 @@ class DataBase:
             self.close_db()
         finally:
             self._lock(False)
+        return ret
 
+    def insert(self, table, rows, values):
+        row_str = ','.join(rows)
+        value_str = ''
+        ret = None
+
+        try:
+            int(values[0])
+            value_str = ','.join(values)
+        except ValueError:
+            value_str = '\'' + '\','.join(values) + '\''
+        try:
+            cur = self.open_db()
+            if cur == None:
+                return None
+            self._lock(True)
+            self.log.debug(f'INSERT INTO {table} ({row_str}) VALUES ({value_str});')
+            cur.execute(f'INSERT INTO {table} ({row_str}) VALUES ({value_str});')
+            self.conn.commit()
+            ret = cur.rowcount
+            self.log.info(ret)
+            self.close_db()
+        finally:
+            self._lock(False)
         return ret
 
     def get_photo_infos(self, all=True):
-        where = '' if all == True or self.last_ts == None else f'WHERE ts > {self.tast_ts} '
-        data = self.read(table='photos', rows=['id', 'ts'], where=f'{where}ORDER BY ts DESC')
-        self.last_ts = time.time()
+        where = '' if all == True or self.last_ts == None else f'WHERE ts > \'{self.last_ts}\' '
+        data = self.read(table='photos', rows=['id', 'ts'], where=f'{where}ORDER BY ts ASC')
+        self.last_ts = datetime.now()
         return data
 
     def get_photo_img(self, id):
@@ -99,8 +129,15 @@ class DataBase:
         return data[0][0] if data else None
 
     def delete_photo(self, id):
+        file = self.get_photo_img(id)
         entries = self.delete(table='photos', where=f'WHERE id = {id}')
-        return entries if entries else 0
+        if entries > 0:
+            try:
+                os.remove(f'{PHOTO_DIR}/{file}')
+            except FileNotFoundError:
+                pass
+            return entries
+        return 0
 
 class User:
     def __init__(self, id, name, email=None):

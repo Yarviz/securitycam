@@ -8,6 +8,7 @@ VALUE_TRESHOLD = 5.0
 TIME_TRESHOLD = 5.0
 PHOTO_DIR = 'database/photos'
 PHOTO_FILE = 'photo'
+
 class Camera(object):
     def __init__(self, port, logger):
         self.port = port
@@ -27,17 +28,16 @@ class Camera(object):
                     photo_indexes.append(int(list(filter(str.isdigit, file))[0]))
                 except ValueError:
                     pass
-        self.log.info(photo_indexes)
         if not photo_indexes:
             return 0
         return max(photo_indexes) + 1
 
 
-    def start_reader(self):
+    def start_reader(self, db):
         self.reader = self.open_port()
         if self.reader.is_open == False:
             return False
-        self.read_thread = ReadThread(self.reader, self.log, self.find_img_index())
+        self.read_thread = ReadThread(self.reader, self.log, db, self.find_img_index())
         self.read_thread.start()
         return True
 
@@ -47,10 +47,11 @@ class Camera(object):
         self.reader.close()
 
 class ReadThread(Thread):
-    def __init__(self, reader, log, index):
+    def __init__(self, reader, log, db, index):
         Thread.__init__(self)
         self.reader = reader
         self.log = log
+        self.db = db
         self.running = False
         self.last_num = None
         self.pic_time = 0.0
@@ -62,7 +63,7 @@ class ReadThread(Thread):
         while self.running == True:
             if self.reader.inWaiting() > 0:
                 line = self.reader.readline().decode('utf-8').rstrip()
-                self.log.info(line)
+                #self.log.info(line)
                 try:
                     self.process(float(line))
                 except ValueError:
@@ -78,10 +79,11 @@ class ReadThread(Thread):
         self.last_num = num
 
     def take_picture(self):
-        proc_out = subprocess.getoutput([f'fswebcam {PHOTO_DIR}/{PHOTO_FILE}_{self.img_index}.jpg'])
-        self.log.info(proc_out)
+        file_name = f'{PHOTO_FILE}_{self.img_index}.jpg'
+        proc_out = subprocess.getoutput([f'fswebcam --no-banner {PHOTO_DIR}/{file_name}'])
         if proc_out.find('Captured frame') > 0:
-            self.log.info(f'New frame pic_{self.img_index}.jpg captured')
+            self.log.info(f'New frame {file_name} captured')
+            self.db.insert(table='photos', rows=['file'], values=[file_name])
             self.img_index += 1
         else:
             self.log.warn('Failed to capture frame')

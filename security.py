@@ -46,7 +46,7 @@ if __name__ == '__main__':
     if args.port:
         camera = Camera(args.port, log)
         camera.find_img_index()
-        if camera.start_reader() == False:
+        if camera.start_reader(db) == False:
             log.warning("Can't open serial port")
         else:
             log.info("Camera state reader started")
