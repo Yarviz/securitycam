@@ -1,7 +1,15 @@
 class Photos {
     constructor(photos) {
         this.photos = photos;
+        console.log(this.photos);
         this.entry = -1;
+    }
+
+    add_entries(entries) {
+        for (const entry of entries) {
+            this.photos.push(entry);
+        }
+        console.log(this.photos)
     }
 
     get_id(pos) {
@@ -69,7 +77,7 @@ function login_user() {
 }
 
 function init_listeners() {
-    refresh_photos();
+    refresh_photos(true);
     document.getElementById('photolist').addEventListener("click", function(e) {
         var parent = e.target.parentElement;
         var index = Array.prototype.indexOf.call(parent.children, e.target);
@@ -85,10 +93,12 @@ function init_listeners() {
     });
 }
 
-function refresh_photos() {
+function refresh_photos(get_all) {
     console.log("get photos");
-    post_request('/photos', { "request": "list", "all": true }, function(data) {
-        photos = new Photos(data);
+    post_request('/photos', { "request": "list", "all": get_all }, function(data) {
+        if (data[0] === undefined) return;
+        if (photos === undefined) photos = new Photos(data);
+        else photos.add_entries(data);
 
         var list = document.getElementById("photolist");
         for (const entry of data) {
@@ -97,6 +107,7 @@ function refresh_photos() {
             list.appendChild(item);
         }
     });
+    setTimeout(function() { refresh_photos(false) }, 5000);
 }
 
 function remove_photo() {

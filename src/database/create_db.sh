@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DATABASE='security.db'
-PHOTO_DIR='../static/photos'
+PHOTO_DIR='photos'
 force=false
 
 check_next () {
@@ -39,8 +39,9 @@ done
 if [ -f $DATABASE ]; then
     echo "$DATABASE already exists!"
     if [ $force == true ]; then
-        echo "removing old database"
+        echo "removing old database and photos"
         rm -f $DATABASE
+        find $PHOTO_DIR -name "*.jpg" -type f -delete
     else
         exit 0
     fi

@@ -1,13 +1,14 @@
 from flask import Flask
 from flask_login import LoginManager
-from database import DataBase, UserHelper, get_log_handler
+from libpy.database import DataBase, UserHelper, get_log_handler
 import logging
 import argparse
 import signal
-from camera import Camera
+from libpy.camera import Camera
 
 app = Flask("security cam")
 #app.config['LOGIN_DISABLED'] = True
+app.config['UPLOAD_FOLDER'] = app.root_path + '/database/photos/'
 app.secret_key = 'security app'
 
 login_manager = LoginManager()
@@ -21,7 +22,7 @@ db = DataBase(log)
 users = UserHelper(db)
 camera = None
 
-import routes
+import libpy.routes
 
 def sig_handler(sig, frame):
     if camera:
@@ -44,7 +45,8 @@ if __name__ == '__main__':
 
     if args.port:
         camera = Camera(args.port, log)
-        if camera.start_reader() == False:
+        camera.find_img_index()
+        if camera.start_reader(db) == False:
             log.warning("Can't open serial port")
         else:
             log.info("Camera state reader started")
