@@ -1,22 +1,69 @@
 from serial import Serial
 from threading import Thread
+from flask_mail import Message
 import subprocess
 import time
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-from serial.serialutil import SerialException
+from serial.serialutil import PortNotOpenError, SerialException
 
 VALUE_TRESHOLD = 5.0
-TIME_TRESHOLD = 5.0
-PHOTO_DIR = 'database/photos'
-PHOTO_FILE = 'photo'
+TIME_TRESHOLD  = 5.0
+PHOTO_DIR      = 'database/photos'
+PHOTO_FILE     = 'photo'
+MAIL_SERVER    = 'smtp.mailtrap.io'
+PORT           = 2525
+LOGIN          = 'a9f596a835454b'
+PASSWORD       = '088ac519b43a61'
+SECURITY_URL   = 'http://127.0.0.1:5000'
+
+class Mail(object):
+    def __init__(self, server, port, login, pswrd, log):
+        self.server = server
+        self.port = port
+        self.login = login
+        self.password = pswrd
+        self.log = log
+
+    def send_mail(self, msg, receivers):
+        recv = ','.join(receivers)
+        message = MIMEMultipart('security')
+        message["Subject"] = "Security issue"
+        message["From"] = 'security@mailtrap.io'
+        message["To"] = recv
+
+        html = f"""\
+            <html>
+            <body>
+                <p>{msg}<br><br>
+                <a href={SECURITY_URL}>Security Camera</a>
+                </p>
+            </body>
+            </html>
+        """
+        part1 = MIMEText(msg, "plain")
+        part2 = MIMEText(html, "html")
+        message.attach(part1)
+        message.attach(part2)
+        try:
+            with smtplib.SMTP(self.server, self.port) as server:
+                server.login(self.login, self.password)
+                server.sendmail('security@mailtrap.io', recv, message.as_string())
+                self.log.info('sent emails')
+        except:
+            self.log.info('email sent failed')
 
 class Camera(object):
-    def __init__(self, port, logger):
+    def __init__(self, port, logger, mail=None, app=None):
         self.port = port
         self.log = logger
         self.reader = None
         self.read_thread = None
+        self.mail = mail
+        self.app = app
 
     def open_port(self, baudrate=9600, timeout=2):
         return Serial(self.port, baudrate=baudrate, timeout=timeout)
@@ -60,6 +107,7 @@ class ReadThread(Thread):
         self.last_num = None
         self.pic_time = 0.0
         self.img_index = index
+        self.mail = Mail(MAIL_SERVER, PORT, LOGIN, PASSWORD, log)
 
     def run(self):
         self.reader.flush()
@@ -89,8 +137,18 @@ class ReadThread(Thread):
             self.log.info(f'New frame {file_name} captured')
             self.db.insert(table='photos', rows=['file'], values=[file_name])
             self.img_index += 1
+            if self.mail:
+                self.post_email()
         else:
             self.log.warn('Failed to capture frame')
+
+    def post_email(self):
+        ret = self.db.read(table='users',rows=['id', 'email'],where='WHERE notifications = 1 AND notificated = 0')
+        ids = [e[0] for e in ret]
+        emails = [e[1] for e in ret]
+        if ids:
+            self.mail.send_mail('New security photo taked', receivers=emails)
+            self.db.update_notificated(ids)
 
     def stop(self):
         self.running = False

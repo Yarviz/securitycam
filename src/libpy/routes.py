@@ -1,6 +1,7 @@
 from flask import render_template, request, jsonify, redirect, url_for
 from flask_login import login_required, login_user, logout_user, current_user
-from __main__ import app, login_manager, users, log, db
+from flask_mail import Message
+from __main__ import app, login_manager, users, log, db, mail
 
 from flask import send_from_directory
 
@@ -73,6 +74,7 @@ def login():
     if user:
         log.info(user.to_json())
         login_user(user)
+        db.update(table='users', rows=['notificated'], values=[0], where='WHERE id={}'.format(user.get_id()))
         return ok(user.to_json())
     else:
         return error('invalid username or password')

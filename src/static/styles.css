@@ -31,6 +31,10 @@ p {
     color: darkred;
 }
 
+c {
+    color: white;
+}
+
 ul {
     list-style-type: none;
     padding-left: 10px;
