@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_login import LoginManager
+from flask_mail import Mail
 from libpy.database import DataBase, UserHelper, get_log_handler
 import logging
 import argparse
@@ -10,6 +11,15 @@ app = Flask("security cam")
 #app.config['LOGIN_DISABLED'] = True
 app.config['UPLOAD_FOLDER'] = app.root_path + '/database/photos/'
 app.secret_key = 'security app'
+
+app.config['MAIL_SERVER']='smtp.mailtrap.io'
+app.config['MAIL_PORT'] = 2525
+app.config['MAIL_USERNAME'] = '***REMOVED***'
+app.config['MAIL_PASSWORD'] = '***REMOVED***'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
+mail = Mail(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)

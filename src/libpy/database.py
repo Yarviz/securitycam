@@ -93,7 +93,7 @@ class DataBase:
             self._lock(False)
         return ret
 
-    def insert(self, table, rows, values):
+    def insert(self, table, rows, values, where=''):
         row_str = ','.join(rows)
         value_str = ''
         ret = None
@@ -108,8 +108,34 @@ class DataBase:
             if cur == None:
                 return None
             self._lock(True)
-            self.log.debug(f'INSERT INTO {table} ({row_str}) VALUES ({value_str});')
-            cur.execute(f'INSERT INTO {table} ({row_str}) VALUES ({value_str});')
+            self.log.debug(f'INSERT INTO {table} ({row_str}) VALUES ({value_str}){where};')
+            cur.execute(f'INSERT INTO {table} ({row_str}) VALUES ({value_str}){where};')
+            self.conn.commit()
+            ret = cur.rowcount
+            self.log.info(ret)
+            self.close_db()
+        finally:
+            self._lock(False)
+        return ret
+
+    def update(self, table, rows, values, where=''):
+        exec_str = ''
+        ret = None
+
+        for row, value in zip(rows, values):
+            try:
+                int(value)
+                exec_str += f'{row} = {value},'
+            except ValueError:
+                exec_str += f'{row} = \'{value}\','
+        exec_str = exec_str[:-1]
+        try:
+            cur = self.open_db()
+            if cur == None:
+                return None
+            self._lock(True)
+            self.log.info(f'UPDATE {table} SET {exec_str} {where};')
+            cur.execute(f'UPDATE {table} SET {exec_str} {where};')
             self.conn.commit()
             ret = cur.rowcount
             self.log.info(ret)
@@ -138,6 +164,14 @@ class DataBase:
                 pass
             return entries
         return 0
+
+    def update_notificated(self, ids):
+        where = f'WHERE id = {ids[0]}'
+        if len(ids) > 1:
+            for id in ids[1:]:
+                where += f' OR id = {id}'
+        self.update(table='users', rows=['notificated'], values=[1], where=where)
+
 
 class User:
     def __init__(self, id, name, email=None):
