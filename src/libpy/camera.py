@@ -1,6 +1,5 @@
 from serial import Serial
 from threading import Thread
-from flask_mail import Message
 import subprocess
 import time
 import os
@@ -8,7 +7,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from serial.serialutil import PortNotOpenError, SerialException
+from serial.serialutil import SerialException
 
 VALUE_TRESHOLD = 5.0
 TIME_TRESHOLD  = 5.0
