@@ -69,6 +69,4 @@ if __name__ == '__main__':
         port = args.flask_port
 
     signal.signal(signal.SIGINT, sig_handler)
-
-    log.info(db.read(table='users'))
     app.run(host=host, port=port, debug=False, ssl_context=cert)
