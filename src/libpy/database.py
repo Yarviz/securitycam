@@ -67,10 +67,10 @@ class DataBase:
             cur = self.open_db()
             if cur == None:
                 return None
-            self.log.info(f'SELECT {rowstr} FROM {table} {where};')
+            self.log.debug(f'SELECT {rowstr} FROM {table} {where};')
             cur.execute(f'SELECT {rowstr} FROM {table} {where};')
             ret = cur.fetchall()
-            self.log.info(ret)
+            self.log.debug(ret)
             self.close_db()
         finally:
             self._lock(False)
@@ -87,7 +87,7 @@ class DataBase:
             cur.execute(f'DELETE FROM {table} {where};')
             self.conn.commit()
             ret = cur.rowcount
-            self.log.info(ret)
+            self.log.debug(ret)
             self.close_db()
         finally:
             self._lock(False)
@@ -112,7 +112,7 @@ class DataBase:
             cur.execute(f'INSERT INTO {table} ({row_str}) VALUES ({value_str}){where};')
             self.conn.commit()
             ret = cur.rowcount
-            self.log.info(ret)
+            self.log.debug(ret)
             self.close_db()
         finally:
             self._lock(False)
@@ -134,11 +134,11 @@ class DataBase:
             if cur == None:
                 return None
             self._lock(True)
-            self.log.info(f'UPDATE {table} SET {exec_str} {where};')
+            self.log.debug(f'UPDATE {table} SET {exec_str} {where};')
             cur.execute(f'UPDATE {table} SET {exec_str} {where};')
             self.conn.commit()
             ret = cur.rowcount
-            self.log.info(ret)
+            self.log.debug(ret)
             self.close_db()
         finally:
             self._lock(False)

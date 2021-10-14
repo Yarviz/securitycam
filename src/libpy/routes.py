@@ -1,7 +1,7 @@
 from flask import render_template, request, jsonify, redirect, url_for
 from flask_login import login_required, login_user, logout_user, current_user
 from flask_mail import Message
-from __main__ import app, login_manager, users, log, db, mail
+from __main__ import app, login_manager, users, log, db
 
 from flask import send_from_directory
 
