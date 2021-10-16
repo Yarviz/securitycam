@@ -22,7 +22,7 @@ def load_user(user_id):
 
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
-    log.info(app.config['UPLOAD_FOLDER'])
+    #log.info(app.config['UPLOAD_FOLDER'])
     return send_from_directory(app.config['UPLOAD_FOLDER'],
                                filename, as_attachment=True)
 
@@ -37,7 +37,7 @@ def get_photos():
     req_type = data.get('request')
     if req_type == 'list':
         get_all = False if data.get('all') == False else True
-        log.info('get photos')
+        #log.info('get photos')
         return jsonify(db.get_photo_infos(get_all))
     elif req_type == 'get':
         id = data.get('id')
@@ -71,8 +71,9 @@ def login():
 
     user = users.validate_user(username, password)
     if user:
-        log.info(user.to_json())
+        log.debug(user.to_json())
         login_user(user)
+        db.update(table='users', rows=['notificated'], values=[0], where='WHERE id={}'.format(user.get_id()))
         return ok(user.to_json())
     else:
         return error('invalid username or password')

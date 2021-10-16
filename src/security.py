@@ -33,7 +33,9 @@ def sig_handler(sig, frame):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--cert', action='store_true', help='set this if using HTTPS')
-    parser.add_argument('--port', type=str, help='enter arduino serial port')
+    parser.add_argument('--flask_ip', type=str, help='enter flask server ip address')
+    parser.add_argument('--flask_port', type=int, help='enter flask server port')
+    parser.add_argument('--arduino_port', type=str, help='enter arduino serial port')
 
     args = parser.parse_args()
 
@@ -43,8 +45,8 @@ if __name__ == '__main__':
         log.error('Failed to open database')
         exit(1)
 
-    if args.port:
-        camera = Camera(args.port, log)
+    if args.arduino_port:
+        camera = Camera(args.arduino_port, log)
         camera.find_img_index()
         if camera.start_reader(db) == False:
             log.warning("Can't open serial port")
@@ -58,7 +60,13 @@ if __name__ == '__main__':
     if args.cert:
         cert = 'adhoc'
 
-    signal.signal(signal.SIGINT, sig_handler)
+    host = "127.0.0.1"
+    if args.flask_ip:
+        host = args.flask_ip
 
-    log.info(db.read(table='users'))
-    app.run(debug=False, ssl_context=cert)
+    port = 5000
+    if args.flask_port:
+        port = args.flask_port
+
+    signal.signal(signal.SIGINT, sig_handler)
+    app.run(host=host, port=port, debug=False, ssl_context=cert)
