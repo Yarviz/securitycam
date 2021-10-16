@@ -13,10 +13,10 @@ VALUE_TRESHOLD = 5.0
 TIME_TRESHOLD  = 5.0
 PHOTO_DIR      = 'database/photos'
 PHOTO_FILE     = 'photo'
-MAIL_SERVER    = 'smtp.mailtrap.io'
-PORT           = 2525
-LOGIN          = '***REMOVED***'
-PASSWORD       = '***REMOVED***'
+MAIL_SERVER    = 'smtp.mailtrap.io' # used mail server
+PORT           = 2525               # mail server port
+LOGIN          = ''                 # login
+PASSWORD       = ''                 # password
 SECURITY_URL   = 'http://127.0.0.1:5000'
 
 class Mail(object):
