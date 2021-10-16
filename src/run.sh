@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 
 PORT=$(dmesg|grep -o 'ttyACM.')
 
