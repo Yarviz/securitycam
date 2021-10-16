@@ -2,7 +2,7 @@
 
 Simple security camera project, where arduino controlled ultrasonic sensor sends measured range \
 to serial port and program reads it from there. When motion is detected, web-camera takes picture \
-and it's been stored in the sqlite database with timestamp. Notification from new imagess will be send \
+and it's been stored in the sqlite database with timestamp. Notification from new images will be send \
 by email to users whose notifications are enabled.
 
 Python web-server runs on hosted server, where authored users can browse those pictures.
