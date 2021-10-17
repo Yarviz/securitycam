@@ -21,14 +21,12 @@ while [[ $# -gt 0 ]]; do
         -d|--dummy)
             check_next "$@"
             init_dummy=$2
-            shift
-            shift
+            shift 2
         ;;
         -db|--database)
             check_next "$@"
             init_file=$2
-            shift
-            shift
+            shift 2
         ;;
         *)
         shift
